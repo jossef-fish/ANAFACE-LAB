@@ -1,0 +1,5 @@
+{
+  "name": "ANAFACE LAB",
+  "description": "Ultra-premium futuristic AI facial analysis laboratory. Engineer your best face with scientific insights and face-to-face comparisons.",
+  "requestFramePermissions": ["camera"]
+}
