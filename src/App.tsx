@@ -28,12 +28,16 @@ import { FaceAnalysisResult, GlowUpRoadmap } from "./types";
 
 import { HeroSection } from "./components/blocks/hero-section-5";
 
-export default function App() {
+import { FirebaseProvider, useFirebase } from "./components/FirebaseProvider";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+function AppContent() {
   const [step, setStep] = useState<"landing" | "upload" | "scanning" | "dashboard" | "compare" | "roadmap">("landing");
   const [analysisResult, setAnalysisResult] = useState<FaceAnalysisResult | null>(null);
   const [roadmap, setRoadmap] = useState<GlowUpRoadmap | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
+  const { user, signIn, logout, loading } = useFirebase();
 
   const handleUpload = async (base64: string) => {
     setUploadedImage(base64);
@@ -62,6 +66,14 @@ export default function App() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0F] flex items-center justify-center">
+        <div className="text-2xl font-black animate-pulse text-[#4DA3FF]">INITIALIZING LAB...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen text-white font-sans selection:bg-[#4DA3FF]/30">
       <Background3D />
@@ -88,9 +100,20 @@ export default function App() {
                   {analysisResult && (
                     <button onClick={() => setStep("dashboard")} className="text-sm font-medium text-white/60 hover:text-white transition-colors">Dashboard</button>
                   )}
-                  <button className="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold hover:bg-white/10 transition-all">
-                    Join Lab
-                  </button>
+                  
+                  {user ? (
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <img src={user.photoURL || ""} alt={user.displayName || ""} className="w-8 h-8 rounded-full border border-white/10" />
+                        <span className="text-xs font-bold text-white/60">{user.displayName?.split(' ')[0]}</span>
+                      </div>
+                      <button onClick={logout} className="text-xs font-bold text-red-500/60 hover:text-red-500 transition-colors">Logout</button>
+                    </div>
+                  ) : (
+                    <button onClick={signIn} className="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold hover:bg-white/10 transition-all">
+                      Join Lab
+                    </button>
+                  )}
                 </div>
               </div>
             </nav>
@@ -266,5 +289,15 @@ export default function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <FirebaseProvider>
+        <AppContent />
+      </FirebaseProvider>
+    </ErrorBoundary>
   );
 }
